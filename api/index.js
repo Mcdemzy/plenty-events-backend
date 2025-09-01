@@ -1,4 +1,4 @@
-const app = require("./app");
+const app = require("../app");
 const mongoose = require("mongoose");
 
 // Connect to database
@@ -12,13 +12,9 @@ const connectDB = async () => {
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error(`Error: ${error.message}`);
-    process.exit(1);
   }
 };
 
 connectDB();
 
-const PORT = process.env.PORT || 5000;
-
-// Export the app for Vercel serverless functions
 module.exports = app;
