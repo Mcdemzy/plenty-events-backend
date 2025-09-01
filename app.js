@@ -8,8 +8,31 @@ const authRoutes = require("./routes/auth");
 
 const app = express();
 
+// CORS configuration
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, Postman, etc.)
+    if (!origin) return callback(null, true);
+
+    // Allow your frontend domains
+    const allowedOrigins = [
+      "http://localhost:5173", // Local development
+      "https://your-frontend-domain.vercel.app", // Your frontend Vercel domain
+      "https://plenty-events.vercel.app", // Example - replace with your actual domain
+    ];
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200,
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -21,7 +44,7 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ message: "Server is running!" });
 });
 
-// 404 handler - Fixed the wildcard syntax
+// 404 handler
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
