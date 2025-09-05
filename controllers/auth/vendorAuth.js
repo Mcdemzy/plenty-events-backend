@@ -1,18 +1,35 @@
 const Vendor = require("../../models/Vendor");
 const { generateToken } = require("../../utils/jwt");
+const { sendVerificationEmail } = require("./verificationController");
 
 // @desc    Register a new vendor
 // @route   POST /api/vendors/auth/register
 // @access  Public
 exports.register = async (req, res, next) => {
   try {
-    const { email, password, firstName, lastName, phone, businessName, businessDescription } = req.body;
+    const {
+      email,
+      password,
+      firstName,
+      lastName,
+      phone,
+      businessName,
+      businessDescription,
+    } = req.body;
 
     // Validation
-    if (!email || !password || !firstName || !lastName || !businessName || !businessDescription) {
+    if (
+      !email ||
+      !password ||
+      !firstName ||
+      !lastName ||
+      !businessName ||
+      !businessDescription
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Please provide all required fields: email, password, first name, last name, business name, and business description",
+        message:
+          "Please provide all required fields: email, password, first name, last name, business name, and business description",
       });
     }
 
@@ -40,11 +57,18 @@ exports.register = async (req, res, next) => {
       lastName,
       phone: phone || "",
       businessName,
-      businessDescription
+      businessDescription,
     });
 
     // Generate token
-    const token = generateToken(vendor._id, 'vendor');
+    const token = generateToken(vendor._id, "vendor");
+
+    try {
+      await sendVerificationEmail(vendor._id, "vendor");
+    } catch (emailError) {
+      console.error("Failed to send verification email:", emailError);
+      // Don't fail the registration if email fails
+    }
 
     // Remove password from response
     vendor.password = undefined;
@@ -96,7 +120,7 @@ exports.login = async (req, res, next) => {
     }
 
     // Generate token
-    const token = generateToken(vendor._id, 'vendor');
+    const token = generateToken(vendor._id, "vendor");
 
     // Remove password from response
     vendor.password = undefined;
@@ -185,7 +209,7 @@ exports.updatePassword = async (req, res, next) => {
     await vendor.save();
 
     // Generate new token
-    const token = generateToken(vendor._id, 'vendor');
+    const token = generateToken(vendor._id, "vendor");
 
     res.status(200).json({
       success: true,

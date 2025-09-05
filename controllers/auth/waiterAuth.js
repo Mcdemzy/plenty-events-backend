@@ -1,5 +1,6 @@
 const Waiter = require("../../models/Waiter");
 const { generateToken } = require("../../utils/jwt");
+const { sendVerificationEmail } = require("./verificationController");
 
 // @desc    Register a new waiter
 // @route   POST /api/waiters/auth/register
@@ -43,6 +44,13 @@ exports.register = async (req, res, next) => {
 
     // Generate token
     const token = generateToken(waiter._id, "waiter");
+
+    try {
+      await sendVerificationEmail(waiter._id, "waiter");
+    } catch (emailError) {
+      console.error("Failed to send verification email:", emailError);
+      // Don't fail the registration if email fails
+    }
 
     // Remove password from response
     waiter.password = undefined;

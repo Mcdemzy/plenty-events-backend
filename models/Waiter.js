@@ -95,6 +95,12 @@ const waiterSchema = new mongoose.Schema(
 
     // Verification
     verification: {
+      isEmailVerified: {
+        type: Boolean,
+        default: false,
+      },
+      emailVerificationToken: String,
+      emailVerificationExpires: Date,
       isVerified: { type: Boolean, default: false },
       verificationStatus: {
         type: String,

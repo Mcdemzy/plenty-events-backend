@@ -18,7 +18,7 @@ const vendorSchema = new mongoose.Schema(
       minlength: 6,
       select: false,
     },
-    
+
     // Business information
     businessName: {
       type: String,
@@ -29,7 +29,7 @@ const vendorSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    
+
     // Personal information
     firstName: {
       type: String,
@@ -50,37 +50,43 @@ const vendorSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    
+
     // Services
-    services: [{
-      type: String,
-      required: true,
-    }],
-    serviceCategories: [{
-      type: String,
-      enum: [
-        "Catering",
-        "Drinks",
-        "Cocktails",
-        "Decorators",
-        "Venue",
-        "Photography",
-        "Entertainment",
-      ],
-      required: true,
-    }],
-    
+    services: [
+      {
+        type: String,
+        required: true,
+      },
+    ],
+    serviceCategories: [
+      {
+        type: String,
+        enum: [
+          "Catering",
+          "Drinks",
+          "Cocktails",
+          "Decorators",
+          "Venue",
+          "Photography",
+          "Entertainment",
+        ],
+        required: true,
+      },
+    ],
+
     // Pricing
     pricing: {
       hourlyRate: Number,
       dailyRate: Number,
-      packageDeals: [{
-        name: String,
-        price: Number,
-        description: String,
-      }],
+      packageDeals: [
+        {
+          name: String,
+          price: Number,
+          description: String,
+        },
+      ],
     },
-    
+
     // Location
     location: {
       address: String,
@@ -93,7 +99,7 @@ const vendorSchema = new mongoose.Schema(
         lng: Number,
       },
     },
-    
+
     // Contact
     contactInfo: {
       phone: String,
@@ -105,26 +111,34 @@ const vendorSchema = new mongoose.Schema(
         twitter: String,
       },
     },
-    
+
     // Verification
     verification: {
+      isEmailVerified: {
+        type: Boolean,
+        default: false,
+      },
+      emailVerificationToken: String,
+      emailVerificationExpires: Date,
       isVerified: { type: Boolean, default: false },
       verificationStatus: {
         type: String,
         enum: ["pending", "approved", "rejected"],
         default: "pending",
       },
-      documents: [{
-        type: {
-          type: String,
-          enum: ["ID", "BusinessLicense", "Insurance", "Other"],
+      documents: [
+        {
+          type: {
+            type: String,
+            enum: ["ID", "BusinessLicense", "Insurance", "Other"],
+          },
+          url: String,
+          uploadedAt: Date,
         },
-        url: String,
-        uploadedAt: Date,
-      }],
+      ],
       verifiedAt: Date,
     },
-    
+
     // Stats
     stats: {
       totalHires: { type: Number, default: 0 },
@@ -132,7 +146,7 @@ const vendorSchema = new mongoose.Schema(
       averageRating: { type: Number, default: 0 },
       responseRate: { type: Number, default: 0 },
     },
-    
+
     // Availability
     availability: {
       isAvailable: { type: Boolean, default: true },
@@ -147,16 +161,18 @@ const vendorSchema = new mongoose.Schema(
         sunday: { start: String, end: String },
       },
     },
-    
+
     // Additional vendor-specific fields
-    portfolio: [{
-      imageUrl: String,
-      description: String,
-      date: Date,
-    }],
+    portfolio: [
+      {
+        imageUrl: String,
+        description: String,
+        date: Date,
+      },
+    ],
     teamSize: Number,
     yearsOfExperience: Number,
-    
+
     // Account status
     profileCompleted: {
       type: Boolean,
