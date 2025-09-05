@@ -1,65 +1,68 @@
-const User = require("../models/User");
-const { generateToken } = require("../utils/jwt");
+const Waiter = require("../../models/Waiter");
+const { generateToken } = require("../../utils/jwt");
 
-// @desc    Register a new user
-// @route   POST /api/auth/register
+// @desc    Register a new waiter
+// @route   POST /api/waiters/auth/register
 // @access  Public
 exports.register = async (req, res, next) => {
   try {
-    const { email, password, firstName, lastName, phone, role } = req.body;
+    const { email, password, firstName, lastName, phone } = req.body;
 
     // Validation
     if (!email || !password || !firstName || !lastName) {
       return res.status(400).json({
+        success: false,
         message: "Please provide email, password, first name, and last name",
       });
     }
 
     if (password.length < 6) {
       return res.status(400).json({
+        success: false,
         message: "Password must be at least 6 characters",
       });
     }
 
-    // Check if user exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
+    // Check if waiter exists
+    const existingWaiter = await Waiter.findOne({ email });
+    if (existingWaiter) {
       return res.status(400).json({
-        message: "User already exists with this email",
+        success: false,
+        message: "Waiter already exists with this email",
       });
     }
 
-    // Create user
-    const user = await User.create({
+    // Create waiter
+    const waiter = await Waiter.create({
       email,
       password,
       firstName,
       lastName,
       phone: phone || "",
-      role: role || "client",
     });
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken(waiter._id, "waiter");
 
     // Remove password from response
-    user.password = undefined;
+    waiter.password = undefined;
 
     res.status(201).json({
       success: true,
       token,
-      user,
+      data: waiter,
     });
   } catch (error) {
-    console.error("Registration error:", error);
+    console.error("Waiter registration error:", error);
     res.status(500).json({
+      success: false,
       message: "Server error during registration",
     });
   }
 };
 
-// @desc    Login user
-// @route   POST /api/auth/login
+// @desc    Login waiter
+// @route   POST /api/waiters/auth/login
 // @access  Public
 exports.login = async (req, res, next) => {
   try {
@@ -68,65 +71,70 @@ exports.login = async (req, res, next) => {
     // Validate email & password
     if (!email || !password) {
       return res.status(400).json({
+        success: false,
         message: "Please provide an email and password",
       });
     }
 
-    // Check for user and include password for comparison
-    const user = await User.findOne({ email }).select("+password");
+    // Check for waiter and include password for comparison
+    const waiter = await Waiter.findOne({ email }).select("+password");
 
-    if (!user || !(await user.comparePassword(password, user.password))) {
+    if (!waiter || !(await waiter.comparePassword(password))) {
       return res.status(401).json({
+        success: false,
         message: "Invalid credentials",
       });
     }
 
-    if (!user.isActive) {
+    if (!waiter.isActive) {
       return res.status(401).json({
+        success: false,
         message: "Account has been deactivated",
       });
     }
 
     // Generate token
-    const token = generateToken(user._id);
+    const token = generateToken(waiter._id, "waiter");
 
     // Remove password from response
-    user.password = undefined;
+    waiter.password = undefined;
 
     res.status(200).json({
       success: true,
       token,
-      user,
+      data: waiter,
     });
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("Waiter login error:", error);
     res.status(500).json({
+      success: false,
       message: "Server error during login",
     });
   }
 };
 
-// @desc    Get current logged in user
-// @route   GET /api/auth/me
+// @desc    Get current logged in waiter
+// @route   GET /api/waiters/auth/me
 // @access  Private
 exports.getMe = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id);
+    const waiter = await Waiter.findById(req.user.id);
 
     res.status(200).json({
       success: true,
-      user,
+      data: waiter,
     });
   } catch (error) {
-    console.error("Get me error:", error);
+    console.error("Get waiter error:", error);
     res.status(500).json({
-      message: "Server error fetching user data",
+      success: false,
+      message: "Server error fetching waiter data",
     });
   }
 };
 
-// @desc    Update user details
-// @route   PUT /api/auth/updatedetails
+// @desc    Update waiter details
+// @route   PUT /api/waiters/auth/updatedetails
 // @access  Private
 exports.updateDetails = async (req, res, next) => {
   try {
@@ -136,44 +144,44 @@ exports.updateDetails = async (req, res, next) => {
       phone: req.body.phone,
     };
 
-    const user = await User.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
+    const waiter = await Waiter.findByIdAndUpdate(req.user.id, fieldsToUpdate, {
       new: true,
       runValidators: true,
     });
 
     res.status(200).json({
       success: true,
-      user,
+      data: waiter,
     });
   } catch (error) {
-    console.error("Update details error:", error);
+    console.error("Update waiter details error:", error);
     res.status(500).json({
+      success: false,
       message: "Server error updating details",
     });
   }
 };
 
-// @desc    Update password
-// @route   PUT /api/auth/updatepassword
+// @desc    Update waiter password
+// @route   PUT /api/waiters/auth/updatepassword
 // @access  Private
 exports.updatePassword = async (req, res, next) => {
   try {
-    const user = await User.findById(req.user.id).select("+password");
+    const waiter = await Waiter.findById(req.user.id).select("+password");
 
     // Check current password
-    if (
-      !(await user.comparePassword(req.body.currentPassword, user.password))
-    ) {
+    if (!(await waiter.comparePassword(req.body.currentPassword))) {
       return res.status(401).json({
+        success: false,
         message: "Current password is incorrect",
       });
     }
 
-    user.password = req.body.newPassword;
-    await user.save();
+    waiter.password = req.body.newPassword;
+    await waiter.save();
 
     // Generate new token
-    const token = generateToken(user._id);
+    const token = generateToken(waiter._id, "waiter");
 
     res.status(200).json({
       success: true,
@@ -181,8 +189,9 @@ exports.updatePassword = async (req, res, next) => {
       message: "Password updated successfully",
     });
   } catch (error) {
-    console.error("Update password error:", error);
+    console.error("Update waiter password error:", error);
     res.status(500).json({
+      success: false,
       message: "Server error updating password",
     });
   }
